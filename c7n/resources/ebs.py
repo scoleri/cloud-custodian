@@ -1024,8 +1024,25 @@ class CreateSnapshot(BaseAction):
         retry = get_retry(['Throttled'], max_attempts=5)
         for vol in volumes:
             vol_id = vol['VolumeId']
-            retry(client.create_snapshot, VolumeId=vol_id)
-
+            retry(client.create_snapshot, Description='Backup of Unattached Volume before it was deleted', VolumeId=vol_id, 
+                                          TagSpecifications=[ { 
+                                            'ResourceType': 'snapshot', 
+                                            'Tags': [
+                                              {
+                                                'Key': 'OldVolumeId',
+                                                'Value': vol_id,
+                                              }, 
+                                              {
+                                                'Key': 'Name',
+                                                'Value': 'CloudCustodianBackup',
+                                              },
+                                              {
+                                                'Key': 'Description',
+                                                'Value': 'Backup of Unattached Volume before it was deleted',
+                                              },
+                                            ]
+                                          }, ] 
+            )
 
 @actions.register('delete')
 class Delete(BaseAction):
